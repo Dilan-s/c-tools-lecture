@@ -1,5 +1,5 @@
 /*
- * simple list-of-integers module: the implementation
+ *   simple list-of-integers module: the implementation
  */
 
 #include <stdio.h>

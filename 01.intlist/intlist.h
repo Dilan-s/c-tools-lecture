@@ -1,5 +1,5 @@
 /*
- * intlist: simple list-of-integers module
+ *  intlist: simple list-of-integers module
  */
 
 typedef struct intlist *intlist;
