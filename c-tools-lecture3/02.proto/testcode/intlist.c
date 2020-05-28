@@ -11,6 +11,9 @@
 
 #define NEW(t) ((t)malloc(sizeof(struct t)))
 
+void wibble(void){
+}
+
 
 intlist intlist_cons( int first, intlist next )
 {
