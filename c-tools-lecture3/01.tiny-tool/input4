@@ -1,0 +1,22 @@
+TEMPLATE,int int_<0>( int a, int b ) { return (a<1>b); }
+plus,+
+minus,-
+times,*
+div,/
+mod,%
+first,+0*
+second,*0+
+aplus2b,+2*
+atimesbplus3,)*(3+
+asquared,*a+0*
+bsquared,*0+b*
+squaredsum,*a+b*
+TEMPLATE,double double_<0>( double a, double b ) { return (a<1>b); }
+plus,+
+minus,-
+times,*
+div,/
+TEMPLATE,hello first <0>, second <1>, third <2>
+a,b,c
+d,e,f
+g,h,i

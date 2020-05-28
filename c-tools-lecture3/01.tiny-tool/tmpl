@@ -1,0 +1,35 @@
+#!/usr/bin/perl
+#
+# tmpl:	a simple template processor.  input is of the form..
+#	TEMPLATE,int int_<0>( int a, int b ) { return (a<1>b); }
+#	plus,+
+#	...
+#	TEMPLATE,double double_<0>( double a, double b ) { return (a<1>b); }
+#	plus,+
+#	...
+#	TEMPLATE,hello first <0>, second <1>, third <2>
+#	a,b,c
+#	...
+#
+use strict;				# strict and warnings are good:-)
+use warnings;
+
+my $template;				# declare $template variable..
+
+while( <> )				# for every line of the input
+{
+	chomp;				# remove the trailing newline
+	if( /^TEMPLATE,(.*)$/ )		# pattern match: regular expression
+	{
+		$template=$1;
+	} else
+	{
+		die "missing template\n" unless $template;
+		my @f=split(/,/);	# split current line into fields
+		$_="$template\n";	# copy template to current line
+		s/<(\d+)>/$f[$1]/g;	# replace all <n> with $f[n]
+		s/\\n/\n/g;		# expand \n
+		s/\\t/\t/g;		# expand \t
+		print;			# print expanded template
+	}
+}

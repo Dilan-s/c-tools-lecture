@@ -1,0 +1,57 @@
+.nr X
+.TH tmpl 1 "June 2010"
+.SH NAME
+tmpl \- rudimentary template processor
+.SH SYNOPSIS
+.B tmpl
+<
+.I input
+>
+.I output
+
+.SH DESCRIPTION
+.B tmpl
+reads an input file, containing TEMPLATE,t and CSV lines,
+and expands each non-template line into an expansion of the current
+template t, replacing each <N> marker in the current template
+into the Nth field in the current CSV line (field numbers starting
+from 0).
+
+.SH EXAMPLE
+
+The input file:
+
+.nf
+TEMPLATE,int int_<0>( int a, int b ) { return (a<1>b); }
+plus,+
+minus,-
+TEMPLATE,double double_<0>( double a, double b ) { return (a<1>b); }
+plus,+
+minus,-
+TEMPLATE,hello first <0>, second <1>, third <2>
+a,b,c
+.fi
+
+is expanded into:
+
+.nf
+int int_plus( int a, int b ) { return (a+b); }
+int int_minus( int a, int b ) { return (a-b); }
+double double_plus( double a, double b ) { return (a+b); }
+double double_minus( double a, double b ) { return (a-b); }
+hello first a, second b, third c
+.fi
+
+.LP
+
+.SH FILES
+.TP 20
+.B inputfile
+- tmpl-format input file, containing TEMPLATE,t and CSV lines.
+.TP
+.B outputfile
+- tmpl output file, containing an expanded template invocation
+for each non-template line in the input.
+
+.SH AUTHOR
+Duncan C. White, d.white@imperial.ac.uk

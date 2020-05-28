@@ -1,0 +1,13 @@
+a collection of useful C utility data-types and modules, forming libADTs.a
+
+hash:     string->void *
+longhash: string->long  (for frequency hashes, bags etc)
+set:      set(string)
+longset:  set(long)
+intlist:  list(int)
+strlist:  list(string)	(char *, tricky storage considerations)
+wordlist: list(fixed-length-strings)   (each up to MAXWORDLEN chars long)
+
+plus numerous unit test programs..
+
+	(revised) May 2019 - added longset

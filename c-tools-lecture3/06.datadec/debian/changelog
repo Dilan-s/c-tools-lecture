@@ -1,0 +1,11 @@
+datadec (1.2) trusty; urgency=low
+
+  * added experimental free_TYPE() generation (-f option to datadec)
+
+ -- Duncan C. White <dcw@doc.ic.ac.uk>  Thu, 14 Aug 2014 15:06:06 +0100
+
+datadec (1.1-1) unstable; urgency=low
+
+  * Initial release, created by dh_make as a test
+
+ -- Lloyd Kamara <l.kamara@imperial.ac.uk>  Wed, 04 Sep 2013 12:15:00 +0100

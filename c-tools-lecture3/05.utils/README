@@ -1,0 +1,16 @@
+A couple of silly little utilities that didn't fit anywhere else, forming
+libutils.a:
+
+csvsplit.c:	a simple Comma-Separated Values splitter,
+		making a callback for each field value.
+
+readline.c:	a simple "read the next line of input, not overflowing"
+		routine.
+
+Plus test program:
+
+testcsv.c:	some tests of the csv splitter.
+
+To compile:	make
+
+To install in TOOLDIR:	make install

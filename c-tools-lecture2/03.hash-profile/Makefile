@@ -1,6 +1,6 @@
 CC	=	gcc
-CFLAGS	=	-Wall #-pg
-LDLIBS	=	#-pg
+CFLAGS	=	-Wall -pg
+LDLIBS	=	-pg
 PROGS	=	testhash iterate
 
 all:	$(PROGS)

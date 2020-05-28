@@ -1,0 +1,7 @@
+TYPE {
+
+intlist = null "null" | cons( int first, intlist next ) 1 " , " 2;
+illist  = null "n\nll" | cons( intlist first, illist next ) "[ " 1 " ] , " 2;
+idtree  = leaf( string id, intlist l ) "leaf( '" 1 "', " 2 ")"
+	| node( idtree left, idtree right ) "( " 1 " , " 2 " )";
+}

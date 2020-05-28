@@ -1,0 +1,13 @@
+void emit_instr( int type, int which, int reg, int rest )
+
+eek( int type, x y )
+
+oke( int type, x y, )
+
+void bibble( opcode fred
+
+void booble( opcode )
+
+void gen_ldstore( opcode opc, int reg, gop g )
+{
+	int type = 0;

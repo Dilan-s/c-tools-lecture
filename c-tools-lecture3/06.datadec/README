@@ -1,0 +1,92 @@
+datadac-1.3, June 2018
+
+Datadec takes inductive (or recursive) data types modelled on those found in
+functional languages (Hope, Miranda, Haskell etc) and generates ISO/ANSI C
+code to implement them.
+
+			Duncan C. White, d.white@imperial.ac.uk
+			19th March 2002
+
+New June 2018! v1.3
+- converted to use stdbool.h at last, inside and out
+
+- added new mode (-m) and new code to emit on stdout a list of all the
+  metadata, i.e. for each shape of each type, typename, shapename, and
+  the shape parameter types.  This will be useful for add-on tools such
+  as the experimental "CPM.perl" script, which tackles client side use
+  of datadec-generated types, translating C+Pattern Matches to C.
+
+- added assert( p != NULL ) in every constructor after the NEW( T ) call.
+
+- fixed longstanding bug whereby the top of the global section was
+  copied AFTER the <<#include "thismodule.h">> whereas if it were copied
+  above it could #include other stuff.  but of course now it can't use
+  the defined types from "thismodule.h".
+
+- changed the arg processing to use getopt.
+
+- added a new "suppress function F" multi-flag, and stored the results in
+  a "list (could even be a set) of strings of named functions to suppress,
+  ie. perhaps because an alternative manually tweaked verson is included in
+  the GLOBAL section."  Did this by importing strlist module from libADTs.
+
+New May 2014!  v1.2
+
+- experimental free functions for every inductive data type
+ (run datadec with new -f option)
+
+An Example of Datadec in Action
+-------------------------------
+
+To give you a feel for what datadec can do, you could write:
+
+intlist = nil
+        | cons( int first, intlist next )
+        ;
+
+illist  = nil
+        | cons( intlist first, illist next )
+        ;
+
+idtree  = leaf( string id, illist l )
+        | node( idtree left, idtree right )
+        ;
+
+What does this mean?  
+The first rule declares that an intlist can take two basic "shapes" -
+it is either empty, aka nil, or of the form cons(int,intlist).
+nil() and cons() are called constructors, and define different
+"shapes" that objects of the type can take.
+However, because the second argument of a cons() constructor is itself
+an intlist, this type is said to be recursively or inductively defined.
+
+Functional programmers will recognise nil or cons() as the standard
+way of defining a list, so more intuitively, intlist is simply
+a list of integers!
+
+Reading on, an illist is declared as a list of intlists,
+and an idtree is declared as a binary tree where each leaf node
+contains a (string, illist) pair.
+
+Given this input, datadec can automatically construct an ISO C
+module which implements all the data types, a constructor function for
+each constructor, deconstructor functions to help you to take objects
+apart again and printing functions to help you with debugging.
+
+(Plus, new May 2014: a tree-walking free function for every type if you
+invoke datadec with the new -f option).
+
+Building and Packaging datadec
+------------------------------
+
+See the INSTALL file for building and packaging instructions.
+
+Testing
+-------
+
+Having built datadec in the source directory, you can also compile and
+run a test harness in the test directory.  test/cdata.in is the datadec
+input file which declares some recursive data types (lists and trees),
+and ctest.c is the test harness that uses them.  cd into test and run make
+to turn cdata.in into cx.h and cx.c, and to compile cx.c and ctest.c and
+link them..

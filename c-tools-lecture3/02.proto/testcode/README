@@ -1,0 +1,37 @@
+- This is simply yet another copy of our intlist example, for testing proto
+
+- having installed proto into your c-tools, and having added the
+  vi macro into your ~/.exrc, proceed as follows:
+
+- vi intlist.c
+
+	- add a parameter to one of the functions, or add a new function, or
+	  delete a function.
+
+	- save the file (:w).
+
+	- then switch to editing the .h file:
+		(:e intlist.h, or I have this rigged up as a macro bound
+		 to 'v')
+
+	- sit the cursor on the top of the existing prototype block, or
+	  a blank line where you want the prototype block to go.
+	  (eg. search for extern via "/extern[return]")
+
+  	- then press "[".
+
+  	- The prototypes update instantly!
+
+	- write it out (:w)
+
+	- switch back to intlist.c (:e# or CTRL-^)
+
+	- undo your change, or make another change, whatever.
+
+	- save the file again (:w).
+
+	- switch back to intlist.h again (:e# or CTRL-^)
+
+  	- with the cursor sitting on the first prototype, press "[" again.
+
+	- wow!

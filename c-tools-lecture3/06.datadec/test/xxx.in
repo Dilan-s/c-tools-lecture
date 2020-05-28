@@ -1,0 +1,10 @@
+TYPE {
+	list	=	nil
+		or	cons( int head, list tail ) 1 ", " 2;
+
+	fred	=	a
+		or	b( int x, fred a ) 1 " ++b++ " 2
+		or	c( char a, int z, fred k ) 1 " --c-- " 2 " --c-- " 3
+		or	d( int x )
+		or	e;
+}

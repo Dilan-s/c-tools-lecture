@@ -1,0 +1,59 @@
+- here's my (limited) ANSI/ISO C prototype generator proto
+
+- it reads new style ANSI/ISO C function headings and old style
+  K&R C function headings
+
+- please NOTE the main limitation: the ENTIRE FUNCTION HEADING
+  MUST BE ON ONE LINE!  eg
+  	struct wibble *function( int x, list y )
+	{...
+	}
+
+- it also doesn't understand some types like arrays [use ptr equiv]
+  and pointers-to-function types [use typedef].  It also doesn't
+  understand type modifiers like "const": feel free to add them:-)
+
+- see comments in proto.c and the man page proto.1
+
+- to build and install it in your TOOLDIR, simply
+	make install
+
+- examples:  ./proto testansiprotos
+	     ./proto testk+rprotos
+
+- cd out of this directory (3.proto), type 'rehash' and then
+ 'which proto' should report ~/c-tools/bin/x84_64/proto, and
+
+ 'man proto' should show you the man page.
+
+- can link proto into vi by adding
+
+ :map [ !}proto %
+
+ (that's CTRL-V followed by CTRL-M at the end) into your ~/.exrc
+
+- use that by editing a .h file and sitting on the 1st line of the
+  existing prototype section (the first time, just add a random non-blank
+  line followed by a blank line, sit on the random line) and then
+  pressing the [ key to invoke the macro.
+
+- note that proto can also generate forward declarations of all the
+  static functions in a C file, by being invoked as proto -s FILENAME
+
+- having set this up, cd into the "testcode" directory, alter (say)
+  intlist.c - adding a parameter to one of the functions.  Then save
+  the file.  Then switch to editing the .h file (:e intlist.h, I have
+  this rigged up as a macro bound to 'v'), sit the cursor on the top
+  of the existing prototype block, or a blank line where you want the
+  prototype block to go, and press '[' to invoke proto.  Lo and behold,
+  the prototypes regenerate instantly.
+
+- if you're not a vim user, that's fine, I hereby challenge you to work out
+  how to glue proto into Your Favourite Programmer's Editor (TM) in the
+  same sort of way, especially if that editor is an IDE like CLion.
+
+  If you can't manage to do that, then you are restricting yourself to
+  the confines of what CLion can do for all time, placing yourself inside
+  a straight-jacket.  This will hurt you in the long term.  If this
+  happened to me, it would tell me that I was
+	  ***using the wrong programmer's editor***

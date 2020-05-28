@@ -1,0 +1,74 @@
+after installing datadec (from 06.datadec) into your TOOLDIR,
+here's an example of HOW TO USE IT.
+
+- prepare an input file, such as types.in, containing:
+TYPE {
+       intlist =  null or cons( int first, intlist next );
+       tree  =  leaf( string name )
+	       or node( tree left, tree right );
+}
+
+- To generate a C module called "datatypes", in the usual pair
+  of files "datatypes.[ch]", that implements all these types, invoke:
+
+    datadec datatypes types.in
+
+- this generates datatypes.h and datatypes.c.
+
+- you'll also find the tree leaf counter from the lecture turned into the
+  nleaves module (containing the nleaves(t) function), and several test
+  programs (testintlist.c, testtree.c and mintesttree.c) and a Makefile that
+  compiles everything (it even knows how to generate datatypes.[ch] from
+  types.in, and also knows that "make clean" should delete those files)
+
+- so compile via:
+
+	make
+
+- and then run all the test programs via
+
+	make test
+
+  (this runs all the tests via L2's summarisetests utility that you
+  installed when you worked through the L2 tarball.  You did, didn't you?)
+
+- relatively recently, I've given datadec the ability to generate
+  free_TYPE functions.  You will notice that mintesttree.c has
+  a commented out "free_tree( t )" call..
+  
+  If you want to experiment with this, do the following:
+        - start by verifying that mintesttree is currently leaking
+	  memory using our old friend valgrind:
+	    valgrind ./mintesttree
+  	- then edit the Makefile, add "-f" to the datadec invocation.
+	- then edit types.in and make it read as follows:
+
+GLOBAL {
+#define free_string(s) free(s)
+}
+
+TYPE { 
+       intlist =  nil or cons( int first, intlist next ); 
+       tree    =  leaf( -string name )
+               or node( tree left, tree right );
+}      
+
+	  (the changes are adding the whole GLOBAL section, and adding
+	   '-' in front of string name in leaf)
+
+	- the '-' in front of string name in leaf prevents datadec from
+	  trying to free leaf names.  You need to do that because the
+	  test program uses string literals in the constructor
+	  calls, and these Must Not Be Freed:-)
+
+	- in mintesttree.c, uncomment the free_tree(t) call.
+
+	- do a total rebuild: make clean all
+
+	- run mintesttree again, this time UNDER VALGRIND:
+
+	  valgrind ./mintesttree
+	
+	- and you should see no memory leakage. yippee.
+
+	- Do the same with testtree too.

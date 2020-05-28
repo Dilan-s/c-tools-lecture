@@ -1,0 +1,5 @@
+TYPE { 
+       intlist =  nil or cons( int head, intlist tail ); 
+       tree    =  leaf( string name )
+               or node( tree left, tree right );
+}      

@@ -1,0 +1,315 @@
+.TH DATADEC L
+.SH NAME
+datadec \- ANSI C data declaration module constructor
+.SH SYNOPSIS
+datadec
+.RB [\- vfno ]
+.RB [\- s FUNCTIONNAME...]
+.I basename
+.RB infile
+.PP
+OR
+.PP
+datadec
+.RB [\- m ]
+.RB infile
+
+.SH DESCRIPTION
+.B Datadec
+takes an input file containing a series of Haskell style recursive (or
+inductive) datatype declarations - with optional hints on printing and freeing,
+and builds an definition/implementation pair of ANSI C files \-
+.I "basename.h"
+and
+.I "basename.c"
+containing data declarations,
+constructor functions, deconstructor functions and printing functions.
+
+.PP
+The two files produced together form a module that implements the relevent
+data types.
+
+.SH "OPTIONS"
+.TP 8
+.B "\-v"
+enter verbose mode.
+.I "Datadec"
+now displays the data types that it parses, along with various almost
+certainly useless bits of information about optimization.
+.TP
+.B "\-f"
+Enable experimental generation of free_TYPE() functions.
+See the later section on free functions.
+.TP
+.B "\-n"
+do not perform various optimizations.
+.TP
+.B "\-o"
+perform optimizations (the default).
+.TP
+.B "\-m"
+Do **NOT** produce the normal module.  Instead, produce
+.I "meta-data"
+on stdout.  This lists, for each type and shape, the typename,
+the shapename, and a comma-separated list of the shape parameter
+types.
+.TP
+.B "\-s FUNCTIONNAME"
+Add
+.I FUNCTIONNAME
+to the set of functions to be suppressed, i.e. not generated in the
+output .c file.
+Currently this is only implemented for print_TYPE functions,
+but it would be trivial to implement for constructors, deconstructors
+and free functions too.
+The usual reason for using this suppression feature is because you
+have provided a manually constructed optimized print function in the
+GLOBAL section of the datadec input file.
+
+.SH "AN EXAMPLE"
+.PP
+The simplest use is to prepare an input file, such as
+.I "data.in,"
+which might (for example) contain:
+.nf
+TYPE {
+        intlist =  nil or cons( int first, intlist next );
+        illist  =  nil or cons( intlist first, illist next );
+        idtree  =  leaf( string id )
+                or node( idtree left, idtree right );
+}
+.fi
+To generate C code implementing these types, invoke:
+.nf
+     datadec eek data.in
+.fi
+which generates
+.I "eek.h"
+and
+.I "eek.c"
+
+.fi
+If you wanted to suppress print_idtree and print_illist from eek.c
+(while leaving their prototypes in eek.h), you would run:
+.nf
+     datadec -s print_idtree -s print_illist eek data.in
+.fi
+
+.SH THE DATA DECLARATION LANGUAGE
+
+The language accepted by datadec is split into two components:
+the "outer language" is patterned after
+the GMD compiler tools
+.B "LALR"
+and
+.B "REX"
+(similar to Yacc and Lex)
+and allows you to specify four sections (only the last is compulsory):
+
+.PP
+.nf
+.B "[ EXPORT { free_format_text } ]"
+.br
+.B "[ GLOBAL { free_format_text } ]"
+.br
+.B "[ BEGIN { free_format_text } ]"
+.br
+.B "TYPE { types }"
+.fi
+
+.PP
+The contents of the
+.I "export"
+section are placed in the header file (the .h).
+Commonly, you may wish to add extern function declarations, public types and
+external variable declarations
+which must be
+placed at the top of the header file, and also define some additional
+procedures using the automatically generated types which must be placed after
+the type declarations!
+To achieve this, you should place a `@@' in the export section -- the text up
+to that point is placed at the top of the header file, whereas the text
+after it is placed at the bottom of the header file -- after all the types
+have been defined.
+
+.PP
+Similarly, the contents of the 
+.I "global"
+section are placed in the C file,
+again with `@@' being used to split the global section into "top of file" and
+"bottom of file" pieces.
+Note that the "top of file" piece is placed ABOVE the '#include "thismodule.h"
+and thus CANNOT use the inductive data types themselves, however this makes it
+the perfect place to add #include's to allow the data types to use other
+types as fields in the shapes.  For example, should one of your inductive
+data types use a "set h" parameter in a shape, #include "set.h" might need
+to go into GLOBAL above the @@.
+
+.PP
+Similarly, the contents of the 
+.I "begin"
+section are placed in an initialization procedure, which the user of the
+constructed module must remember to call at an appropriate juncture (eg.
+immediately when main starts).
+
+.PP
+The
+.I "types"
+section contains the type declarations themselves - the inner language.
+
+.PP
+The "inner language" - that of specifying the actual types section -
+is closely modelled on Haskell, Miranda or Hope, with printing rules added.
+Here is the grammar:
+
+.PP
+.nf
+types	= list(type)
+.br
+type 	= type_name '=' shape list( 'or' shape ) ';'
+.br
+shape	= constructor_name [ '(' params ') ] [ print ]
+.br
+params	= param list( ',' param)
+.br
+param	= ['-'] type_name param_name
+.br
+print	= list(element)
+.br
+element	= number | string_literal
+.fi
+
+.PP
+Note that each data type is terminated by a semicolon,
+and that (within one data type) each shape is separated from the next by 'or'
+(just like the '|' in Haskell).
+If a particular shape has parameters, they are separated from each other
+by commas.
+Each type name is simply an identifier.
+
+.PP
+.I "Datadec"
+also generates routines to write each type to an open FILE *.
+The method of printing each shape is governed by the presence or absence
+of a print rule.  If no print rule is given, the constructor name is printed,
+then an open bracket,
+then each parameter is written out using the appropriate print routine,
+with commas separating the parameters, then a close bracket.
+
+.PP
+If a print rule is given, each print element
+(these are syntactically separated by whitespace)
+is used to generate the write routine as follows:
+A literal string will simply be printed
+(well, '\\n' is turned into a newline!),
+whereas a number (eg. 4) means that the
+4th parameter is printed (invoking the print function for that routine).
+
+.PP
+For example, we could augment the
+.I "idtree"
+type from the example given above with print rules:
+
+.nf
+TYPE {
+idtree  =  leaf( string id )                    "leaf(" 1 ")"
+        or node( idtree left, idtree right )    "node( l=" 1 ", r=" 2 " )";
+}
+.fi
+
+.PP
+Now, an idtree constructed as
+.nf
+node( leaf( "hello" ), node( leaf( "there" ), leaf( "how are you" ) ) )
+.fi
+would print as:
+.nf
+node( l=leaf("hello"), r=node(l=leaf("there"),r=leaf("how are you")))
+.fi
+
+.SH SEE ALSO
+.nf
+LALR, REX, Haskell Language Definition.
+.fi
+
+.SH FREE FUNCTIONS (EXPERIMENTAL)
+
+May 2014: After saying for 20 years that
+"I must implement the missing free_TYPE functions sometime",
+I have now experimentally added support for this. Currently
+you have to enable the generation of these via '-f',
+.I "Datadec"
+will then generate a series of free_TYPE( TYPE t ) functions,
+essentially these will perform a post-order tree traversal,
+recursively freeing every non-basic parameter in each shape.
+(Basic types, not needing freeing, are things like int, long,
+BOOL etc).
+
+.PP
+However, in C you often share pointers (most obviously to readonly
+string literals, but whole data structures can be shared),
+so the user may or may not want to free these.  To handle this,
+the above grammar has been extended to allow optional '-' hints
+(meaning "never free this") on parameters within shapes.
+
+.PP
+So, for instance, given the type:
+
+.nf
+TYPE {
+strlist  =  nil
+        or cons( string h, strlist t )
+}
+.fi
+
+the corresponding free_strlist() function will attempt to
+.nf
+free_string( head_of_list );
+.fi
+
+.PP
+(assuming that in the GLOBAL section you will then provide
+a function or macro to implement free_string(), as in:
+
+.nf
+#define free_string(s) free(s)
+.fi
+
+.PP
+But if you prepend a '-' to the "string h" part of the type, i.e.:
+
+.nf
+TYPE {
+strlist  =  nil
+        or cons( -string h, strlist t )
+}
+.fi
+
+.PP
+then no call to free_string( head_of_list ) will be made.
+
+.PP
+However, even with this mechanism, it is still incredibly easy to
+share pointers when building data structures, such that you
+.I sometimes
+want to free a parameter, and sometimes don't.
+I am still thinking about this, and can't see an easy solution.
+For now, I recommend that you compile all datadec generated
+modules (with free functions in) against a memory checking
+system like valgrind to validate your memory allocation and deallocation.
+
+.SH MISSING FEATURES
+.PP
+A cool extra would be a sprint_TYPE function to print into a string.
+This should be a trivial modification on the code that prints to a file,
+of course we don't know how long the generated string will need to be.
+
+.SH BUGS
+Some single letter typenames (eg. "f" or "p") could clash with internal
+parameter names in the print routines, leading to syntax errors when you
+compile the files generated by datadec.
+.PP
+And, finally, one day I'll have to write the Perl, C++ and (perhaps) Java versions :-)
+
+.SH "AUTHOR"
+Duncan C. White, D.White@imperial.ac.uk.

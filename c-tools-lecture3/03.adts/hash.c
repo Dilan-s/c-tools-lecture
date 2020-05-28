@@ -9,7 +9,7 @@
  * 	   and a value copy function.  These enable you to use values
  * 	   that are themselves complex data structures.
  *
- * (C) Duncan C. White, 1996-2020 although it seems longer:-)
+ * (C) Duncan C. White, 1996-2013 although it seems longer:-)
  */
 
 #include <stdio.h>
@@ -49,7 +49,7 @@ typedef enum { Search, Define } tree_operation;
 
 /* Private functions */
 
-static void foreach_tree( tree, hashforeachcbfunc, void * );
+static void foreach_tree( tree, hashforeachcb, void * );
 static void dump_cb( hashkey, hashvalue, void * );
 static void free_tree( tree, hashfreefunc );
 static void freevalue( hashfreefunc, hashvalue );
@@ -94,8 +94,11 @@ void hashEmpty( hash a )
 
 	for( i = 0; i < NHASH; i++ )
 	{
-		free_tree( a->data[i], a->f );
-		a->data[i] = NULL;
+		if( a->data[i] != NULL )
+		{
+			free_tree( a->data[i], a->f );
+			a->data[i] = NULL;
+		}
 	}
 }
 
@@ -116,7 +119,11 @@ hash hashCopy( hash h )
 
 	for( i = 0; i < NHASH; i++ )
 	{
-		result->data[i] = copy_tree( h->data[i], h->c );
+		result->data[i] = NULL;
+		if( h->data[i] != NULL )
+		{
+			result->data[i] = copy_tree( h->data[i], h->c );
+		}
 	}
 
 	return result;
@@ -132,31 +139,35 @@ void hashFree( hash h )
 
 	for( i = 0; i < NHASH; i++ )
 	{
-		free_tree( h->data[i], h->f );
+		if( h->data[i] != NULL )
+		{
+			free_tree( h->data[i], h->f );
+		}
 	}
-	free( h->data );
+
+	free( (hashvalue) h->data );
 	free( (hashvalue) h );
 }
 
 
 /*
- * Add k->v to the hash array a
+ * Add k->v to the hash h
  */
-void hashSet( hash a, hashkey k, hashvalue v )
+void hashSet( hash h, hashkey k, hashvalue v )
 {
-	(void) tree_op( a, k, v, Define);
+	(void) tree_op( h, k, v, Define);
 }
 
 
 /*
- * Is the hashkey present in the hash a?  if so, write
+ * Is the hashkey present in the hash h?  if so, write
  * it's value into *value (this is like hashFind()
  * except that this can distinguish between value NULL
  * and value 0 (present)!
  */
-int hashPresent( hash a, hashkey k, hashvalue *v )
+int hashPresent( hash h, hashkey k, hashvalue *v )
 {
-	tree x = tree_op(a, k, 0, Search);
+	tree x = tree_op(h, k, 0, Search);
 	if( x == NULL )
 	{
 		*v = (hashvalue)-1;
@@ -168,27 +179,29 @@ int hashPresent( hash a, hashkey k, hashvalue *v )
 
 
 /*
- * Look for something in the hash a
+ * Look for something in the hash h
  */
-hashvalue hashFind( hash a, hashkey k )
+hashvalue hashFind( hash h, hashkey k )
 {
-	tree x = tree_op(a, k, 0, Search);
+	tree x = tree_op(h, k, 0, Search);
 
 	return ( x == NULL ) ? (hashvalue) NULL : x->v;
 }
 
 
 /*
- * perform a foreach operation over a given hash array
+ * perform a foreach operation over a given hash h
  * call a given callback for each (name, value) pair.
  */
-void hashForeach( hash a, hashforeachcbfunc cb, void * arg )
+void hashForeach( hash h, hashforeachcb cb, void * arg )
 {
 	int	i;
 
-	for( i = 0; i < NHASH; i++ )
-	{
-		foreach_tree( a->data[i], cb, arg );
+	for( i = 0; i < NHASH; i++ ) {
+		if( h->data[i] != NULL )
+		{
+			foreach_tree( h->data[i], cb, arg );
+		}
 	}
 }
 
@@ -217,14 +230,14 @@ static void dump_cb( hashkey k, hashvalue v, void * arg )
 }
 
 
-void hashDump( FILE *out, hash a )
+void hashDump( FILE *out, hash h )
 {
 	dumparg arg;
-	arg.p = a->p;
+	arg.p = h->p;
 	arg.out = out;
 
 	if( out != NULL ) fputc('\n',out);
-	hashForeach( a, &dump_cb, (void *)&arg );
+	hashForeach( h, &dump_cb, (void *)&arg );
 	if( out != NULL ) fputc('\n',out);
 }
 
@@ -304,10 +317,10 @@ int hashIsEmpty( hash h )
  * Operate on the binary search tree
  * Search, Define.
  */
-static tree tree_op( hash a, hashkey k, hashvalue v, tree_operation op )
+static tree tree_op( hash h, hashkey k, hashvalue v, tree_operation op )
 {
 	tree	ptr;
-	tree *	aptr = a->data + shash(k);
+	tree *	aptr = h->data + shash(k);
 
 	while( (ptr = *aptr) != NULL )
 	{
@@ -317,7 +330,7 @@ static tree tree_op( hash a, hashkey k, hashvalue v, tree_operation op )
 			if (op == Define)
 			{
 				/* free old value */
-				freevalue( a->f, ptr->v );
+				freevalue( h->f, ptr->v );
 				/* set new value */
 				ptr->v = v;
 			}
@@ -363,7 +376,7 @@ static tree copy_tree( tree t, hashcopyfunc c )
 /*
  * foreach one tree
  */
-static void foreach_tree( tree t, hashforeachcbfunc f, void * arg )
+static void foreach_tree( tree t, hashforeachcb f, void * arg )
 {
 	assert( f != NULL );
 
@@ -387,10 +400,6 @@ static void free_tree( tree t, hashfreefunc f )
 		free_tree( t->right, f );
 		freevalue( f, t->v );
 		free( (hashvalue) t->k );
-
-		//free( t->right );
-		//free( t->left );
-
 		free( (hashvalue) t );
 	}
 }

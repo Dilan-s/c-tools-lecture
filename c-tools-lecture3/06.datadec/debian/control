@@ -1,0 +1,16 @@
+Source: datadec
+Section: devel
+Priority: optional
+Maintainer: Duncan C. White <dcw@doc.ic.ac.uk>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.8.3
+Homepage: <insert the upstream URL, if relevant>
+
+Package: datadec
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Recursive data type generator
+ Datadec takes recursive data types modelled on those found in functional
+ languages (Hope, Miranda, Haskell etc) and generates ANSI C code to
+ implement them.
+

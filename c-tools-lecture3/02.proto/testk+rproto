@@ -1,0 +1,12 @@
+int x()
+char *x(zz) int zz;
+char *x2((zz) int zz;
+
+char *x____32y(zz) int zz;
+
+helllo();
+wibblewobble ****eek(x,y,z) char **z; int x; {
+
+/* and now for a slight cockup... lint and cc catch it though */
+
+flipflopflap **splat(z,y,a,a) int z; char **y; UBYTE *a;

@@ -1,0 +1,35 @@
+Building on Unices
+------------------
+
+1. Extract the datadec-1.3.tgz file, creating a datadec-1.3 directory
+
+2. Compile datadec:
+
+	cd datadec-1.3
+	make
+
+3. Install it (run this as root) into /usr/local/bin and /usr/share/man/man1:
+
+	make install
+
+4. check that datadec is now on your path, eg. rehash, which datadec
+
+5. cd test; make; ./ctest
+
+
+Notes on Packaging
+------------------
+
+An alternative to (3) is to package datadec up and install it via installing
+the package.  There are many different packaging systems: over the years, we
+have packaged datadec for Solaris, Redhat Linux and Debian/Ubuntu Linux, but
+only the Debian/Ubuntu packaging is up to date.
+
+- For Debian/Ubuntu/Debian-derived distros, the tarball includes the debian
+  subdirectory, this should work, invoke "dpkg-buildpackage -tc -rfakeroot"
+  as usual (on a machine with the debian packaging tools installed).
+
+- Also in this directory is a (nontested) RPM .spec file, which may serve as
+  a basis for you to build an RPM, via
+	rpm -bb datadec.spec
+  (but it almost certainly won't work out of the box).

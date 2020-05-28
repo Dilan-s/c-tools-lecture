@@ -1,0 +1,57 @@
+C Tools Lecture 3 Materials
+
+You should ALREADY have
+
+export TOOLDIR=$HOME/c-tools
+export PATH="$TOOLDIR/bin:$TOOLDIR/bin/$ARCH:$PATH"
+export MANPATH=${MANPATH}:$TOOLDIR/man
+
+at the end of your ~/.bashrc from Lecture 1.
+
+Then sequence through the following directories,
+following the instructions in each directory's README.
+
+- 01.tiny-tool
+	- several versions of a tiny shortlived tool written in Perl and C.
+	
+	NOTE: the final version is called "tmpl", and is reused later, so
+	please go into this directory and "make install"
+
+- 02.proto
+	- my ISO C prototype tool (i.e extern function declarations)
+	- run tests, install it, link into vi all as mentioned
+  	  in the README
+
+- 03.adts
+	- a collection of hand-written ADT modules, including our
+	  old friend hash.c (which we profiled and checked for memory leaks
+	  in lecture 2), plus sets, several lists, longhash.c (hashes
+	  mapping strings -> longs, eg for frequency counts) etc.
+	- follow instructions in README.
+	- make install to install libADT into TOOLDIR (~/c-tools),
+
+	NOTE: some of the later examples WILL NOT COMPILE
+	unless you have 'make install'ed this!
+
+- 04.hash-set-eg
+	- contains an example program using hashes and sets from libADT
+	- represents family (parent,child) information, turning (parent,child)
+	  pairs into a parent -> set_of_children collection.
+	- follow instructions in README.
+
+- 05.utils
+	- a few utility modules forming libutils.a:
+		- a csv splitter, and
+		- a readline function
+	- plus test programs etc.
+	- make install to install libutils into TOOLDIR (~/c-tools),
+
+- 06.datadec
+	- my Haskell-style recursive data type generator
+	  for C.  generate C ADT modules automatically.
+	- make install to install it into TOOLDIR (~/c-tools),
+	- then "man datadec" to find out how to use it
+
+- 07.datadec-eg
+	- an example of how to use datadec once you've installed it
+	- follow instructions in README.

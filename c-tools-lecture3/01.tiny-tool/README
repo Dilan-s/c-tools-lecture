@@ -1,0 +1,197 @@
+suppose we find ourselves writing hundreds of boring and
+repetitive "pattern instances", differing only in small details.
+
+For example:
+
+int plus( int a, int b ) { return (a+b); }
+int minus( int a, int b ) { return (a-b); }
+int times( int a, int b ) { return (a*b); }
+...
+
+all that varies from line to line is (funcname,operator),
+perhaps the input and return type 'int' is also a parameter?
+
+Why not generate them automatically using an ad-hoc tool,
+scaffolding that you build, use a few times, then discard?
+especially if you could write the tool in a few minutes!
+
+Specify the inputs (as a `little language') and corresponding outputs:
+
+  INPUT:
+    foreach line: F, Op pairs
+  OUTPUT:
+    foreach line: "int F( int a, int b ) { return (a Op b); }"
+
+(See file 'input1' for an example of input in this format).
+
+Ok, first observe that this is a simple job for a scripting language like Perl,
+as a Perl oneliner I composed in about two minutes:
+
+  perl -nle '($f,$op)=split(/,/); print "int ${f}( int a, int b ) { return (a ${op} b); }"' < input
+
+Even if we insist on doing this in C, it's not that hard, might take about
+30 minutes using low-level string manipulation.  still worth it?
+
+what about the standard library function <strtok>?  does the token splitting
+for us.  might reduce the time to 15 minutes, especially if we already have
+a readline() function that chomps the trailing newline.
+
+Give it a go.  result: 45 line genfuncs1.c, written in 10 minutes
+in 3 write a bit + debug a bit stages (debug prints left it to show you
+where each stage ended).  worked first time round!
+
+Note: genfuncs1.c has some rudimentary error checking, but not as much as
+a "professional tool" needs.   Tools have to be "good enough", not "perfect".
+
+Any improvements worthwhile?  how about left-justifying the function names
+in a field of some suitable width.  eg: in the Perl version:
+
+  perl -nle '($f,$op)=split(/,/); printf "int %-15s( int a, int b ) { return (a${op}b); }\n", $f' < input
+
+Suppose we decide that the generated function names should have the typename
+prefixed onto them, eg. int_plus?  easy:
+
+  perl -nle '($f,$op)=split(/,/); printf "int %-15s( int a, int b ) { return (a${op}b); }\n", "int_${f}"' < input
+
+(ok, perhaps tweak the width from 15 to 20, to compensate for wider func names)
+
+Noticing all those "int"s, let's make it easier to change:
+
+  perl -nle '$t="int"; ($f,$op)=split(/,/);
+             printf "${t} %-15s( ${t} a, $t b ) { return (a${op}b); }\n", "${t}_${f}"' < input
+
+Now, we could set $t from (say) the first line of input, making it special:
+
+  perl -nle 'if($.==1){$t=$_;next}
+             ($f,$op)=split(/,/);
+             printf "${t} %-15s( ${t} a, ${t} b ) { return (a ${op} b); }\n", "${t}_${f}"' < input
+
+(see genfuncs2.c for a C implementation of this)
+
+Much cleaner than "first line is special" is to let the user change the
+type half way through, eg:
+
+  TYPE,int
+  plus,+
+  minus,-
+  TYPE,double
+  plus,+
+  minus,-
+
+would generate
+
+  int int_plus       ( int a, int b ) { return (a+b); }
+  int int_minus      ( int a, int b ) { return (a-b); }
+  double double_plus    ( double a, double b ) { return (a+b); }
+  double double_minus   ( double a, double b ) { return (a-b); }
+
+to implement this, change input format to:
+  INPUT:
+    foreach line: F, Op pair
+
+  OUTPUT:
+    foreach F, Op pair
+        special case: if F=="TYPE": T=Op, next
+    	"T T_F( T a, T b ) { return (a Op b); }"
+
+(see genfuncs3.c for a C implementation of this)
+
+Final thought, instead of hardcoding the output format in the program
+(in the print/printf statement), we could replace the TYPE line
+with an output TEMPLATE, for example:
+
+  TEMPLATE,int <0>( int a, int b ) { return (a<1>b); }
+
+here, we pick some arbitrary but simple marker syntax (<0>) meaning
+"replace this marker with the current value of the first field".
+
+Then our Perl one-liner becomes:
+
+  perl -nle '@f=split(/,/,$_,2); if( $f[0] eq "TEMPLATE" ) { $t=$f[1]; next; }
+             $_=$t; s/<(\d+)>/$f[$1]/g; print' < input
+
+$t is now a template, for each pair we copy $t to Perl's implicit
+variable $_, then modify $_ replacing all <n> occurrences with the
+current value of $f[n], then finally we print $_ and
+a trailing newline.
+
+This is now a very simple template processor.
+
+Finally, we could generalise this still further, allowing any number of
+comma-separated values in the non-template lines:
+
+Then our Perl one-liner becomes:
+
+  perl -nle 'if( /^TEMPLATE,(.*)$/ ) { $t=$1; next; }
+             @f=split(/,/); $_=$t; s/<(\d+)>/$f[$1]/g; print' < input
+
+Converting a one-liner to a named Perl script
+
+You may decide at some point that your one-liner is sufficiently
+amazing to be worth converting to a proper Perl script and naming.
+Let's take that last example and convert it to a Perl script:
+
+The first stage is to keep it mostly unchanged, but in a file with
+the Perl interpreter automatically invoked:
+
+#!/usr/bin/perl -nl
+if( /^TEMPLATE,(.*)$/ ) { $t=$1; next; }
+@f=split(/,/); $_=$t; s/<(\d+)>/$f[$1]/g; print;
+
+(Here we invoke Perl with the "-nl" flags, meaning "do this for every line
+in the input, automatically removing newlines").
+
+Suppose that file is called "tmpl1", save it and make it executable with
+chmod +x tmpl1.  Perl syntax check it with perl -cw tmpl1.
+
+Then to run it:
+
+./tmpl1 < input
+
+Next, you can tidy it up a bit with one command per line,
+decent indentation and also let's replace the next with an else:
+
+#!/usr/bin/perl -nl
+if( /^TEMPLATE,(.*)$/ )
+{
+	$t=$1;
+} else
+{
+	@f=split(/,/);
+	$_=$t;
+	s/<(\d+)>/$f[$1]/g;
+	print;
+}
+
+That's already much clearer.
+
+Finally, if you want to unwrap the implicit "for each line in the file"
+behaviour, and make some other improvements, what I'd actually write is:
+
+#!/usr/bin/perl
+use strict;				# strict and warnings are good:-)
+use warnings;
+
+my $template;				# declare $template variable..
+while( <> )				# for every line of the input
+{
+	chomp;				# remove the trailing newline
+	if( /^TEMPLATE,(.*)$/ )		# pattern match: regular expression
+	{
+		$template=$1;
+	} else
+	{
+		die "missing template\n" unless $template;
+		my @f=split(/,/);	# split current line into fields
+		$_="$template\n";	# copy template to current line
+		s/<(\d+)>/$f[$1]/g;	# replace all <n> with $f[n]
+		print;			# print expanded template
+	}
+}
+
+That final version is present in this directory, with extra comments,
+called tmpl.  Install in it your c-tools directory via:
+
+make install
+
+(new this year: with a man page (gasp)).

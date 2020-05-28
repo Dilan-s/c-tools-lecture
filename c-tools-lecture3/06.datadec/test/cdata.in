@@ -1,0 +1,78 @@
+EXPORT {
+
+/* hello there - welcome to my test file */
+
+/* isn't it fun? */
+
+@@
+
+extern int length( intlist );
+extern int lengthil( illist );
+
+/* bye now */
+
+}
+
+
+GLOBAL {
+#include <stdint.h>
+
+@@
+
+int length( intlist l )
+{
+	int len = 0;
+	int hd;
+
+	while( l != intlist_nil() ) 
+	{
+		get_intlist_cons( l, &hd, &l );
+		len++;
+	}
+	return len;
+
+} /* length */
+
+int lengthil( illist l )
+{
+	int len = 0;
+	intlist hd;
+
+	while( l != illist_nil() ) 
+	{
+		get_illist_cons( l, &hd, &l );
+		len++;
+	}
+	return len;
+
+} /* lengthil */
+
+}
+
+
+BEGIN {
+	printf( "initialization of cdata complete!\n" );
+}
+
+
+TYPE {
+
+first	= a | b | c | d | e;
+second	= a( int aa );
+third	= a | b;
+fourth	= a | b | c(char cc) | d | e;
+fifth	= a | b | c(bool cc) | d( -string dd) | e;
+sixth	= a(int aa, bool ab, -string ac) | b | c | d | e;
+
+intlist = nil						"nil"
+	| cons( int first, intlist next )		1 " , " 2
+	;
+
+illist  = nil						"nil"
+	| cons( -intlist first, illist next )		"[ " 1 " ] , " 2
+	;
+
+idtree  = leaf( -string id, -intlist l )		"leaf( '" 1 "', " 2 ")"
+	| node( idtree left, idtree right )		"node( " 1 " , " 2 " )"
+	;
+}

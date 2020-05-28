@@ -1,0 +1,78 @@
+.TH proto 1 "2/6/88"
+.SH NAME
+proto \- build ANSI/ISO C prototypes from ANSI/ISO or K&R C source code.
+
+.SH SYNOPSIS
+.B proto
+[\fB\-f|-s\fP]  \fIinputfile\fP [\fIoutputfile\fP]
+
+.SH DESCRIPTION
+By default,
+.I PROTO
+builds a list of ANSI/ISO C \fIprototypes\fP
+(external declarations that declare the parameter types)
+for all the public functions in a given C source file - whether
+the function headers are in ANSI/ISO C style or the old K&R
+C style.
+.PP
+You can then incorporate the file generated into your .h files.
+.PP
+If you omit the output file from the command line,
+the standard output will be used.
+
+.SH OPTIONS
+
+If you give PROTO the \fB-s\fP flag, it will generate prototypes
+of all the private (static) functions in the file, instead of the
+public ones.  This list is suitable for embedding into a C source file,
+above all the function definitions..
+
+.PP
+If you give PROTO the \fB-f\fP flag, it will copy the entire file,
+changing any K&R style function headers it sees into the ANSI style.  Thus,
+it acts as a useful (but simplistic) K&R -> ANSI/ISO C converter.
+
+.I PROTO
+doesn't care whether it is given a .c or a .h filename - it still
+reads the .c file!
+Why on earth does it do this?  I have a vi macro set up which pipes the
+next paragraph into proto and replaces it with the result.  I run this
+when editing the .h file, sitting on the existing prototype block, but
+of course I want it to run proto on the corresponding .c file!
+This allows me to keep the prototypes up to date with very little effort.
+
+I have another vi macro (invoking proto -s) to regenerate the
+static function prototypes.
+
+.SH PORTABILITY
+PROTO should work fine on any system with a C compiler.
+If it doesn't, please let me know!
+
+.SH AUTHOR
+Duncan White,
+Dept of Computing,
+Imperial College London
+UK.
+.br
+Email: d.white@imperial.ac.uk
+
+.SH LIMITATIONS
+Rather than implement a full C grammar, PROTO uses a very simple strategy
+for identifying the functions in your C file:
+it takes each line separately, and attempts to recognise it as a
+function heading.
+Lines that fail (the vast majority, of course!) are silently ignored, whereas
+any line that looks like a function has a prototype emitted.
+.PP
+This approach means that the entire function declaration, including the types
+of all the parameters, must
+.B reside on a single line
+for it to be recognised.
+.PP
+The grammar used for parsing lines is **not** complete:
+types (both the return type and parameter types) are restricted
+to roughly ['struct'|'union'] identifier ['*']*'
+Anything more complex, eg. "int (*fred)()" or even "int fred[]" will
+not be recognised.
+To use PROTO successfully, you will need to disguise all such complex types
+as \fItypedef's\fP (but then, I'd always recommend doing this anyway!)
